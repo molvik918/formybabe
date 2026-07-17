@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Heyy My Twin! ❤️</title>
+  
+  <!-- CDNs for Styling and Fonts -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
+  
+  <!-- Web Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            serif: ['"Playfair Display"', 'serif'],
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Aurora Gradient Layer Animation */
+    @keyframes auroraSlow {
+      0% { transform: translate(0px, 0px) scale(1) rotate(0deg); }
+      50% { transform: translate(40px, -60px) scale(1.2) rotate(180deg); }
+      100% { transform: translate(0px, 0px) scale(1) rotate(360deg); }
+    }
+    @keyframes auroraMedium {
+      0% { transform: translate(0px, 0px) scale(1.15) rotate(0deg); }
+      50% { transform: translate(-50px, 40px) scale(0.9) rotate(-120deg); }
+      100% { transform: translate(0px, 0px) scale(1.15) rotate(360deg); }
+    }
+    @keyframes auroraFast {
+      0% { transform: translate(0px, 0px) scale(0.95) rotate(0deg); }
+      50% { transform: translate(30px, -30px) scale(1.1) rotate(90deg); }
+      100% { transform: translate(0px, 0px) scale(0.95) rotate(180deg); }
+    }
+    .animate-aurora-slow {
+      animation: auroraSlow 22s infinite alternate ease-in-out;
+    }
+    .animate-aurora-medium {
+      animation: auroraMedium 18s infinite alternate ease-in-out;
+    }
+    .animate-aurora-fast {
+      animation: auroraFast 15s infinite alternate ease-in-out;
+    }
+
+    /* Glassmorphism Styling */
+    .glass-card {
+      background: rgba(12, 10, 9, 0.45);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6), 
+                  inset 0 1px 1px rgba(255, 255, 255, 0.05);
+    }
+
+    /* Headings Gradient */
+    .text-gradient {
+      background: linear-gradient(135deg, #ffffff 0%, #ffd1e1 40%, #ff4b72 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* Pill Buttons Gradient */
+    .btn-gradient {
+      background: linear-gradient(135deg, #ec4899 0%, #db2777 50%, #e11d48 100%);
+      box-shadow: 0 0 20px rgba(236, 72, 153, 0.35);
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .btn-gradient:hover {
+      transform: translateY(-4px) scale(1.04);
+      box-shadow: 0 0 30px rgba(236, 72, 153, 0.7);
+    }
+    .btn-gradient:active {
+      transform: translateY(1px) scale(0.97);
+    }
+
+    /* Scrollbars customization */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 99px;
+    }
+  </style>
+</head>
+<body class="bg-[#0c0a09] text-neutral-100 font-sans h-full overflow-hidden select-none">
+
+  <!-- Interactive Cursor Trail (hidden on touchscreen/mobile) -->
+  <div id="cursorGlow" class="fixed top-0 left-0 w-10 h-10 rounded-full bg-pink-500/20 blur-md pointer-events-none z-50 transform -translate-x-1/2 -translate-y-1/2 transition-transform duration-75 ease-out hidden md:block"></div>
+
+  <!-- Background Layers -->
+  <!-- Layer 1: Animated Aurora Gradient -->
+  <div class="fixed inset-0 overflow-hidden pointer-events-none z-0 bg-[#0c0a09]">
+    <div class="absolute top-[-10%] left-[-15%] w-[65%] h-[65%] rounded-full bg-[hsla(333,70%,55%,0.16)] blur-[100px] animate-aurora-slow"></div>
+    <div class="absolute bottom-[-15%] right-[-10%] w-[70%] h-[70%] rounded-full bg-[hsla(282,82%,54%,0.12)] blur-[120px] animate-aurora-medium"></div>
+    <div class="absolute top-[35%] right-[5%] w-[55%] h-[55%] rounded-full bg-[hsla(210,89%,60%,0.12)] blur-[110px] animate-aurora-fast"></div>
+    <div class="absolute bottom-[20%] left-[10%] w-[60%] h-[60%] rounded-full bg-[hsla(35,90%,60%,0.07)] blur-[105px] animate-aurora-slow"></div>
+  </div>
+
+  <!-- Layer 2: Three.js 3D Floating Hearts Canvas -->
+  <canvas id="canvas3d" class="fixed inset-0 w-full h-full pointer-events-none z-10"></style></canvas>
+
+  <!-- Global Progress Bar Layout -->
+  <div class="fixed top-6 left-0 right-0 flex justify-center px-6 z-40">
+    <div class="w-full max-w-lg h-1.5 bg-white/5 rounded-full backdrop-blur-md border border-white/5 overflow-hidden">
+      <div id="progressBar" class="h-full w-0 bg-gradient-to-r from-pink-500 to-rose-600 rounded-full transition-all duration-300 ease-out"></div>
+    </div>
+  </div>
+
+  <!-- Main Card Wrapper -->
+  <main class="relative z-20 flex items-center justify-center min-h-full px-4 pt-16 pb-6 overflow-y-auto">
+    <div id="cardContainer" class="w-full max-w-xl relative flex items-center justify-center min-h-[500px]">
+
+      <!-- Step 1: Welcome -->
+      <section id="step1" class="glass-card w-full p-8 md:p-12 rounded-3xl flex flex-col items-center text-center gap-6 md:gap-8">
+        <div class="stagger-in text-6xl md:text-7xl filter drop-shadow-[0_0_20px_rgba(239,68,68,0.5)] animate-pulse mb-2">❤️</div>
+        <h1 class="stagger-in text-4xl md:text-5xl font-serif font-black tracking-wide text-gradient leading-tight">HEYY MY TWIN,</h1>
+        <p class="stagger-in text-base md:text-lg text-neutral-300 leading-relaxed max-w-sm">I built a little world for you, just to bring a smile to your face on your special day.</p>
+        <button onclick="nextStep(1)" class="stagger-in px-10 py-4 mt-2 btn-gradient text-white font-semibold rounded-full tracking-wider">Let's Begin</button>
+      </section>
+
+      <!-- Step 2: Core Message -->
+      <section id="step2" class="glass-card w-full p-8 md:p-12 rounded-3xl flex-col items-center text-center gap-6 md:gap-8 hidden opacity-0 transform translate-y-12">
+        <div class="stagger-in text-6xl md:text-7xl filter drop-shadow-[0_0_25px_rgba(245,158,11,0.4)] mb-2">🎉</div>
+        <h1 class="stagger-in text-3xl md:text-5xl font-serif font-black tracking-wide text-gradient leading-tight">LOVE YOU MY BABYYY!</h1>
+        <div class="stagger-in max-w-md p-5 rounded-2xl bg-white/5 border border-white/5">
+          <p class="text-sm md:text-base text-neutral-200 font-medium leading-relaxed italic">
+            "I always Love you And will Always do . tera chota bhaii hu kabhi kuch galat hoo too samjana or u know me tera sath kabhi nahi chorunga never ever."
+          </p>
+        </div>
+        <button onclick="nextStep(2)" class="stagger-in px-10 py-4 btn-gradient text-white font-semibold rounded-full tracking-wider">Continue ✨</button>
+      </section>
+
+      <!-- Step 3: Bento Grid -->
+      <section id="step3" class="glass-card w-full p-6 md:p-10 rounded-3xl flex-col items-center text-center gap-5 md:gap-6 hidden opacity-0 transform translate-y-12">
+        <h2 class="stagger-in text-2xl md:text-3xl font-serif font-bold tracking-wide text-gradient">A Few Things I Adore About You</h2>
+        
+        <!-- Bento Grid Layout -->
+        <div class="stagger-in grid grid-cols-1 md:grid-cols-2 gap-4 w-full text-left my-1">
+          <!-- Card 1 (Large - Spans 2 Columns) -->
+          <div class="col-span-1 md:col-span-2 p-5 rounded-2xl bg-white/5 border border-white/5 hover:border-pink-500/20 transition-all duration-300">
+            <span class="text-[10px] uppercase tracking-widest text-pink-400 font-bold">01 / CONNECTION</span>
+            <h3 class="text-base font-serif font-bold text-white mt-0.5">✨ Your Unmatched Kindness</h3>
+            <p class="text-sm text-neutral-300 mt-1">The way you call me your baby.</p>
+          </div>
+          <!-- Card 2 (Small - Spans 1 Column) -->
+          <div class="col-span-1 p-5 rounded-2xl bg-white/5 border border-white/5 hover:border-pink-500/20 transition-all duration-300">
+            <span class="text-[10px] uppercase tracking-widest text-pink-400 font-bold">02 / RADIANCE</span>
+            <h3 class="text-base font-serif font-bold text-white mt-0.5">😊 That Smile</h3>
+            <p class="text-sm text-neutral-300 mt-1">It's a work of art.</p>
+          </div>
+          <!-- Card 3 (Large - Spans 2 Columns on layout block) -->
+          <div class="col-span-1 md:col-span-2 p-5 rounded-2xl bg-white/5 border border-white/5 hover:border-pink-500/20 transition-all duration-300">
+            <span class="text-[10px] uppercase tracking-widest text-pink-400 font-bold">03 / BOND</span>
+            <h3 class="text-base font-serif font-bold text-white mt-0.5">🌟 You are just my twin</h3>
+            <p class="text-sm text-neutral-300 mt-1">I always love you babu and hamesaa tujey a badi bhen or 1 asaaa lovee manungaa.</p>
+          </div>
+        </div>
+        
+        <button onclick="nextStep(3)" class="stagger-in px-10 py-4 btn-gradient text-white font-semibold rounded-full tracking-wider mt-2">Remember this?</button>
+      </section>
+
+      <!-- Step 4: Shared Memory -->
+      <section id="step4" class="glass-card w-full p-6 md:p-10 rounded-3xl flex-col items-center text-center gap-6 md:gap-7 hidden opacity-0 transform translate-y-12">
+        <h2 class="stagger-in text-3xl font-serif font-bold tracking-wide text-gradient">That One Time...</h2>
+        
+        <!-- Interactive 3D Polaroid -->
+        <div class="stagger-in my-1 cursor-pointer" style="perspective: 1200px;">
+          <div id="polaroidCard" class="bg-white p-4 pb-6 shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-sm transition-shadow duration-300 ease-out inline-block border border-neutral-100" style="transform: rotate(-3deg); width: 240px; transform-style: preserve-3d;">
+            <div class="overflow-hidden bg-neutral-900 aspect-square rounded-sm border border-neutral-200">
+              <img src="https://i.ibb.co/6Z6XgCg/crush.webp" alt="Our favorite memory" class="w-full h-full object-cover select-none pointer-events-none">
+            </div>
+            <div class="pt-4 text-center">
+              <p class="font-serif text-neutral-800 font-bold text-base tracking-wide">Our favorite memory.</p>
+            </div>
+          </div>
+        </div>
+
+        <p class="stagger-in text-sm md:text-base text-neutral-300 leading-relaxed max-w-sm">Every moment with you feels like a scene from a movie I'd watch on repeat.</p>
+        <button onclick="nextStep(4)" class="stagger-in px-10 py-4 btn-gradient text-white font-semibold rounded-full tracking-wider">One last thing...</button>
+      </section>
+
+      <!-- Step 5: Final Heart Present -->
+      <section id="step5" class="glass-card w-full p-8 md:p-12 rounded-3xl flex-col items-center text-center gap-6 md:gap-8 hidden opacity-0 transform translate-y-12 relative overflow-hidden">
+        <div id="heartPresentEmoji" class="stagger-in text-6xl md:text-7xl filter drop-shadow-[0_0_20px_rgba(239,68,68,0.5)] animate-pulse mb-2">❤️</div>
+        <h1 class="stagger-in text-2xl md:text-3xl font-serif font-black tracking-wide text-gradient leading-tight">MY LITTLE PRESENT TO MY BABY</h1>
+        <p id="presentParagraph" class="stagger-in text-sm md:text-base text-neutral-300 leading-relaxed max-w-sm">
+          I know ki tum rakhi nahi banate but i wanted to give some special things too my fav baby but tune mana kiya ki me pasiee na dalu too this is a small gift to my babyyy .
+        </p>
+
+        <!-- Final Message Destination Container (Revealed elegantly inside Finale) -->
+        <div id="finalWishText" class="w-full max-w-sm p-6 rounded-2xl bg-pink-500/10 border border-pink-500/20 shadow-xl shadow-pink-500/5 my-4 hidden opacity-0 transform translate-y-8">
+          <p class="font-serif text-lg md:text-xl text-pink-100 font-bold leading-relaxed">
+            Love from the mogger the baby the best frind the bf , the babyy the love the one who trully loves you! ❤️
+          </p>
+        </div>
+
+        <button id="finaleBtn" onclick="triggerGrandFinale()" class="stagger-in px-10 py-4 btn-gradient text-white font-semibold rounded-full tracking-wider">U love me na !</button>
+      </section>
+
+    </div>
+  </main>
+
+  <script>
+    /* Global Navigation States */
+    let currentStep = 1;
+    const totalSteps = 5;
+
+    /* Custom Mouse Trail Effect */
+    const cursorGlow = document.getElementById('cursorGlow');
+    window.addEventListener('mousemove', (e) => {
+      gsap.to(cursorGlow, {
+        x: e.clientX,
+        y: e.clientY,
+        duration: 0.15,
+        ease: "power2.out"
+      });
+    });
+
+    /* Initial Entrance Animation on Page Load */
+    window.addEventListener('DOMContentLoaded', () => {
+      initThree();
+      updateProgressBar();
+      
+      // Animate Step 1 inside view
+      gsap.fromTo("#step1", { opacity: 0, scale: 0.95 }, { opacity: 1, scale: 1, duration: 0.8, ease: "power3.out" });
+      gsap.fromTo("#step1 .stagger-in", 
+        { opacity: 0, y: 30 }, 
+        { opacity: 1, y: 0, duration: 0.6, stagger: 0.12, ease: "power2.out", delay: 0.2 }
+      );
+    });
+
+    /* Progress Bar Controller */
+    function updateProgressBar() {
+      const bar = document.getElementById('progressBar');
+      const percentage = ((currentStep - 1) / (totalSteps - 1)) * 100;
+      gsap.to(bar, { width: `${percentage}%`, duration: 0.6, ease: "power2.out" });
+    }
+
+    /* Step Transitions */
+    function nextStep(stepNum) {
+      if (stepNum >= totalSteps) return;
+
+      const currentCard = document.getElementById(`step${stepNum}`);
+      const nextCard = document.getElementById(`step${stepNum + 1}`);
+
+      currentStep = stepNum + 1;
+      updateProgressBar();
+
+      // Fade out current card
+      gsap.to(currentCard, {
+        opacity: 0,
+        scale: 0.92,
+        y: -40,
+        duration: 0.5,
+        ease: "power2.inOut",
+        onComplete: () => {
+          currentCard.classList.remove('flex');
+          currentCard.classList.add('hidden');
+
+          // Initialize next card layout
+          nextCard.classList.remove('hidden');
+          nextCard.classList.add('flex');
+
+          // Smoothly animate next card elements with staggering
+          gsap.fromTo(nextCard, 
+            { opacity: 0, scale: 0.94, y: 40 },
+            { opacity: 1, scale: 1, y: 0, duration: 0.7, ease: "power3.out" }
+          );
+
+          gsap.fromTo(nextCard.querySelectorAll('.stagger-in'),
+            { opacity: 0, y: 25 },
+            { opacity: 1, y: 0, duration: 0.5, stagger: 0.1, ease: "power2.out", delay: 0.2 }
+          );
+
+          // Trigger special logic for Step 4 interactive elements if loaded
+          if (currentStep === 4) {
+            initPolaroid3D();
+          }
+        }
+      });
+    }
+
+    /* Step 4 Polaroid Mouse Parallax */
+    function initPolaroid3D() {
+      const polaroid = document.getElementById('polaroidCard');
+      if (!polaroid) return;
+
+      const onMouseMove = (e) => {
+        const rect = polaroid.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+
+        // Subtle tilt ratio
+        const tiltX = (centerY - y) / 8;
+        const tiltY = (x - centerX) / 8;
+
+        gsap.to(polaroid, {
+          rotateX: tiltX,
+          rotateY: tiltY,
+          transformPerspective: 1000,
+          scale: 1.05,
+          duration: 0.3,
+          ease: "power2.out"
+        });
+      };
+
+      const onMouseLeave = () => {
+        gsap.to(polaroid, {
+          rotateX: -3, // default subtle standard tilt
+          rotateY: 5,
+          scale: 1,
+          duration: 0.6,
+          ease: "power2.out"
+        });
+      };
+
+      polaroid.addEventListener('mousemove', onMouseMove);
+      polaroid.addEventListener('mouseleave', onMouseLeave);
+    }
+
+    /* Step 5 Climax Grand Finale Sequence */
+    function triggerGrandFinale() {
+      const button = document.getElementById('finaleBtn');
+      const finalWish = document.getElementById('finalWishText');
+      const heading = document.querySelector('#step5 h1');
+      const text = document.getElementById('presentParagraph');
+      const emoji = document.getElementById('heartPresentEmoji');
+
+      // Disable and fade button out
+      button.disabled = true;
+      gsap.to(button, {
+        opacity: 0,
+        scale: 0.9,
+        y: 10,
+        duration: 0.4,
+        onComplete: () => {
+          button.classList.add('hidden');
+        }
+      });
+
+      // Animate card layout rearrangement to show the elegant final present text
+      gsap.to([heading, text], { opacity: 0.5, scale: 0.95, duration: 0.6, stagger: 0.1 });
+      
+      // Animate final presentation card
+      finalWish.classList.remove('hidden');
+      gsap.fromTo(finalWish, 
+        { opacity: 0, scale: 0.85, y: 30 },
+        { opacity: 1, scale: 1, y: 0, duration: 0.8, delay: 0.3, ease: "back.out(1.5)" }
+      );
+
+      // Trigger Three.js 3D Hearts Swirl-Out Animation
+      swirlAndFadeThreeHearts();
+
+      // Launch Confetti Celebration
+      startConfettiExplosion();
+    }
+
+    /* Multi-layered High-Fidelity Confetti Generation */
+    function startConfettiExplosion() {
+      const endDuration = Date.now() + 5000; // 5 Seconds celebration length
+      const defaults = { startVelocity: 35, spread: 360, ticks: 60, zIndex: 1000 };
+
+      function randomInRange(min, max) {
+        return Math.random() * (max - min) + min;
+      }
+
+      // 1. Double explosive bursts from screen corners
+      confetti({ ...defaults, particleCount: 150, angle: 60, spread: 65, origin: { x: 0, y: 0.8 } });
+      confetti({ ...defaults, particleCount: 150, angle: 120, spread: 65, origin: { x: 1, y: 0.8 } });
+
+      // 2. Continuous floating showers of standard and styled Emoji hearts
+      const interval = setInterval(function() {
+        const timeLeft = endDuration - Date.now();
+
+        if (timeLeft <= 0) {
+          return clearInterval(interval);
+        }
+
+        const particleCount = 45 * (timeLeft / 5000);
+
+        // Standard dynamic bursts
+        confetti(Object.assign({}, defaults, { 
+          particleCount, 
+          origin: { x: randomInRange(0.15, 0.35), y: Math.random() - 0.2 } 
+        }));
+        confetti(Object.assign({}, defaults, { 
+          particleCount, 
+          origin: { x: randomInRange(0.65, 0.85), y: Math.random() - 0.2 } 
+        }));
+
+        // Fallback gorgeous Emoji confetti drops (Hearts & Sparks)
+        confetti({
+          ...defaults,
+          particleCount: 8,
+          scalar: 2.2,
+          shapes: ['text'],
+          shapeOptions: {
+            text: {
+              value: ['❤️', '💖', '✨', '🌸']
+            }
+          },
+          origin: { x: randomInRange(0.1, 0.9), y: Math.random() - 0.2 }
+        });
+      }, 250);
+    }
+
+    /* THREE.JS 3D WORLD BUILDER */
+    let scene, camera, renderer, hearts = [];
+    let threeActive = true;
+    const clock = new THREE.Clock();
+
+    function initThree() {
+      const canvas = document.getElementById('canvas3d');
+      scene = new THREE.Scene();
+
+      // Set camera angle in 3D viewport
+      camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera.position.z = 45;
+
+      // WebGL Alpha Render engine with transparent bg overlay
+      renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+      // Global Cinematic Atmospheric Lighting setup
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.65);
+      scene.add(ambientLight);
+
+      const spotLight = new THREE.DirectionalLight(0xff7ca1, 1.8);
+      spotLight.position.set(15, 30, 20);
+      scene.add(spotLight);
+
+      const rimLight = new THREE.PointLight(0xf472b6, 2.5, 60);
+      rimLight.position.set(-20, -20, 15);
+      scene.add(rimLight);
+
+      // Create Custom Heart Geometry
+      const heartShape = new THREE.Shape();
+      heartShape.moveTo(25, 25);
+      heartShape.bezierCurveTo(25, 25, 20, 0, 0, 0);
+      heartShape.bezierCurveTo(-30, 0, -30, 35, -30, 35);
+      heartShape.bezierCurveTo(-30, 55, -10, 77, 25, 95);
+      heartShape.bezierCurveTo(60, 77, 80, 55, 80, 35);
+      heartShape.bezierCurveTo(80, 35, 80, 0, 50, 0);
+      heartShape.bezierCurveTo(35, 0, 25, 25, 25, 25);
+
+      const extrudeSettings = { 
+        depth: 10, 
+        bevelEnabled: true, 
+        bevelSegments: 4, 
+        steps: 2, 
+        bevelSize: 3, 
+        bevelThickness: 3 
+      };
+
+      const geometry = new THREE.ExtrudeGeometry(heartShape, extrudeSettings);
+      geometry.center(); // Lock anchor to perfect local volumetric center
+      geometry.scale(0.08, 0.08, 0.08); // scale shape vertices down to global units
+
+      // Highly interactive premium glossy Material config
+      const heartMaterial = new THREE.MeshPhysicalMaterial({
+        color: 0xff3860,
+        emissive: 0x1a0004,
+        roughness: 0.12,
+        metalness: 0.05,
+        clearcoat: 1.0,
+        clearcoatRoughness: 0.05,
+        transmission: 0.25, // Soft light penetration
+        ior: 1.55
+      });
+
+      // Scatter generate 22 floating 3D hearts in camera frustum boundaries
+      const heartCount = 22;
+      for (let i = 0; i < heartCount; i++) {
+        const mesh = new THREE.Mesh(geometry, heartMaterial);
+
+        // Coordinates configuration
+        mesh.position.set(
+          (Math.random() - 0.5) * 65,
+          (Math.random() - 0.5) * 45,
+          (Math.random() - 0.5) * 20 - 5
+        );
+
+        // Random rotation vectors
+        mesh.rotation.set(
+          Math.random() * Math.PI,
+          Math.random() * Math.PI,
+          Math.random() * Math.PI
+        );
+
+        // Assign physical custom kinetic properties inside userData dictionary
+        mesh.userData = {
+          rotX: (Math.random() - 0.5) * 0.012,
+          rotY: (Math.random() - 0.5) * 0.012,
+          driftSpeed: 0.006 + Math.random() * 0.008,
+          amplitude: 1.2 + Math.random() * 1.8,
+          originY: mesh.position.y,
+          phaseOffset: Math.random() * Math.PI * 2,
+          breathingFactor: 0.95 + Math.random() * 0.1
+        };
+
+        const randomScale = 0.5 + Math.random() * 0.65;
+        mesh.scale.setScalar(randomScale);
+
+        scene.add(mesh);
+        hearts.push(mesh);
+      }
+
+      window.addEventListener('resize', onWindowResize);
+      animateLoop();
+    }
+
+    /* Core Three.js render loop */
+    function animateLoop() {
+      if (!threeActive) return;
+      requestAnimationFrame(animateLoop);
+
+      const elapsed = clock.getElapsedTime();
+
+      hearts.forEach((mesh) => {
+        // Continuous rotation vector movement
+        mesh.rotation.x += mesh.userData.rotX;
+        mesh.rotation.y += mesh.userData.rotY;
+
+        // Sine drift wave movements
+        mesh.position.y = mesh.userData.originY + Math.sin(elapsed * mesh.userData.driftSpeed * 50 + mesh.userData.phaseOffset) * mesh.userData.amplitude;
+        mesh.position.x += Math.cos(elapsed * 0.4 + mesh.userData.phaseOffset) * 0.003;
+
+        // Elegant scale breathing
+        const breath = mesh.userData.breathingFactor + Math.sin(elapsed * 1.5 + mesh.userData.phaseOffset) * 0.035;
+        mesh.scale.setScalar(breath);
+      });
+
+      renderer.render(scene, camera);
+    }
+
+    /* Climax animation: Outward Swirl & Floating fade-away of 3D Hearts */
+    function swirlAndFadeThreeHearts() {
+      hearts.forEach((mesh) => {
+        // Calculate outward vectors from viewport center axis
+        const targetX = mesh.position.x * 2.5;
+        const targetY = mesh.position.y + 40; // upward surge
+        const targetZ = mesh.position.z - 15; // deeper coordinate decay
+
+        // Swirl and scale down out of viewport
+        gsap.to(mesh.position, {
+          x: targetX,
+          y: targetY,
+          z: targetZ,
+          duration: 4.5,
+          ease: "power2.in"
+        });
+
+        gsap.to(mesh.scale, {
+          x: 0,
+          y: 0,
+          z: 0,
+          duration: 4.2,
+          ease: "power2.in",
+          onComplete: () => {
+            scene.remove(mesh);
+          }
+        });
+      });
+
+      // Turn off renderer process smoothly after animations clean up to free browser processes
+      gsap.delayedCall(5.0, () => {
+        threeActive = false;
+        renderer.dispose();
+      });
+    }
+
+    /* Manage Dynamic Viewport scaling adjustments */
+    function onWindowResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+  </script>
+</body>
+</html>
